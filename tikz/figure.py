@@ -26,7 +26,8 @@ all lengths in cm
 
 import numpy as np
 import collections
-from tikz import Picture, Scope, rectangle, options, lineto, node, fontsize
+from tikz import Scope, rectangle, options, lineto, node, fontsize, Opts
+from tikz.picture import Picture
 from tikz.extended_wilkinson import TicksGenerator
 
 tex_maxdimen = (2**30 - 1) / 65536 / 72.27 * 2.54
@@ -424,7 +425,7 @@ class Figure(Picture):
         # and ascenders
         scope.path(
             "(title.base)",
-            options(yshift='height("HAbdfhk")'),
+            Opts(yshift='height("HAbdfhk")'),
             f"+(0,{margin_vertical})",
         )
         # Alternatively, one could set the height and depth of the node,
