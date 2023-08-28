@@ -33,7 +33,7 @@ from decimal import Decimal as D
 class cfg:
     "`tikz.extended_wilkinson` configuration variables"
 
-    Q = [D(1), D(5), D(2), D('2.5'), D(4), D(3)]
+    Q = [D(1), D(5), D(2), D("2.5"), D(4), D(3)]
     """
     preference-ordered list of nice step sizes
 
@@ -49,9 +49,22 @@ class cfg:
     *density*, and 0.05 for *legibility*.
     """
 
-    font_metrics = {'offset': 0.1, '-': 0.678, '1': 0.5, '2': 0.5, '3': 0.5,
-                    '4': 0.5, '5': 0.5, '6': 0.5, '7': 0.5, '8': 0.5, '9': 0.5,
-                    '0': 0.5, '.': 0.278, 'height': 0.728}
+    font_metrics = {
+        "offset": 0.1,
+        "-": 0.678,
+        "1": 0.5,
+        "2": 0.5,
+        "3": 0.5,
+        "4": 0.5,
+        "5": 0.5,
+        "6": 0.5,
+        "7": 0.5,
+        "8": 0.5,
+        "9": 0.5,
+        "0": 0.5,
+        ".": 0.278,
+        "height": 0.728,
+    }
     """
     default font metrics
 
@@ -92,8 +105,7 @@ class TicksGenerator:
     instance.
     """
 
-    def __init__(self, font_sizes, density,
-                 font_metrics=None, only_loose=True):
+    def __init__(self, font_sizes, density, font_metrics=None, only_loose=True):
         if font_metrics is None:
             font_metrics = cfg.font_metrics
         self.font_sizes = sorted(font_sizes)
@@ -119,8 +131,12 @@ class TicksGenerator:
         return 1 - (i - 1) / (len(cfg.Q) - 1) - j + 1
 
     def _coverage(self, dmin, dmax, lmin, lmax):
-        return (1 - 0.5 * ((dmax - lmax)**2 + (dmin - lmin)**2)
-                / (0.1 * (dmax - dmin))**2)
+        return (
+            1
+            - 0.5
+            * ((dmax - lmax) ** 2 + (dmin - lmin) ** 2)
+            / (0.1 * (dmax - dmin)) ** 2
+        )
 
     def _coverage_max(self, dmin, dmax, span):
         # upper bound on _coverage w.r.t. start
@@ -132,7 +148,7 @@ class TicksGenerator:
         # else:
         #     return 1
         half = (span - range) / 2
-        return 1 - 0.5 * (2 * half ** 2) / (0.1 * range)**2
+        return 1 - 0.5 * (2 * half**2) / (0.1 * range) ** 2
 
     def _density(self, k, m, dmin, dmax, lmin, lmax):
         r = (k - 1) / (lmax - lmin)
@@ -199,16 +215,14 @@ class TicksGenerator:
         # simultaneously, by iterating over a generator; and we create an
         # index i corresponding to q at the same time. i is `match(q, Q)[1]`
         # and replaces `q, Q` in function calls.
-        JIQ = ((j, i, q)
-               for j in count(start=1)
-               for i, q in enumerate(cfg.Q, start=1))
+        JIQ = ((j, i, q) for j in count(start=1) for i, q in enumerate(cfg.Q, start=1))
         for j, i, q in JIQ:
             sm = self._simplicity_max(i, j)
 
             if self._score(sm, 1, 1, 1) < best_score:
                 break
 
-            for k in count(start=2):      # loop over tick counts
+            for k in count(start=2):  # loop over tick counts
                 dm = self._density_max(k, m)
 
                 if self._score(sm, 1, dm, 1) < best_score:
@@ -252,24 +266,26 @@ class TicksGenerator:
                         #   lmin = q * start * 10**z
                         #   lmax = q * (start + j * (k - 1)) * 10 ** z
                         #   lstep = float(q) * j * 10**z
-                        decimal_values = [q * (start + j * ind)
-                                          * D('1E1') ** z
-                                          for ind in range(k)]
+                        decimal_values = [
+                            q * (start + j * ind) * D("1E1") ** z for ind in range(k)
+                        ]
 
                         # Create `Ticks` object
                         ticks = Ticks(
                             amin=min(lmin, dmin),
                             amax=max(lmax, dmax),
-                            decimal_values=decimal_values)
+                            decimal_values=decimal_values,
+                        )
                         # and initiate internal optimization for label
                         # legibility.
                         ticks._optimize(
                             self.font_sizes,
                             self.font_metrics,
                             axis_length,
-                            axis_horizontal)
+                            axis_horizontal,
+                        )
 
-                        l = ticks.opt_legibility                                    # noqa E741
+                        l = ticks.opt_legibility  # noqa E741
 
                         score = self._score(s, c, d, l)
 
@@ -278,12 +294,8 @@ class TicksGenerator:
 
         if ticks is None:
             # no solution found: no ticks
-            print('Warning: Could not determine ticks.')
-            ticks = Ticks(
-                amin=dmin,
-                amax=dmax,
-                decimal_values=[],
-                labels=[])
+            print("Warning: Could not determine ticks.")
+            ticks = Ticks(amin=dmin, amax=dmax, decimal_values=[], labels=[])
         return ticks
 
 
@@ -295,8 +307,16 @@ class Ticks:
     `Ticks` objects are obtained via `TicksGenerator.ticks`.
     """
 
-    def __init__(self, amin, amax, decimal_values,
-                 labels=None, plabel=None, font_size=None, horizontal=None):
+    def __init__(
+        self,
+        amin,
+        amax,
+        decimal_values,
+        labels=None,
+        plabel=None,
+        font_size=None,
+        horizontal=None,
+    ):
         self.amin = amin
         "axis lower bound"
 
@@ -331,8 +351,7 @@ class Ticks:
         (rather than vertical)
         """
 
-    def _optimize(self, font_sizes, font_metrics,
-                  axis_length, axis_horizontal):
+    def _optimize(self, font_sizes, font_metrics, axis_length, axis_horizontal):
         """
         optimize label legibility in terms of format, font size, and
         orientation
@@ -346,7 +365,7 @@ class Ticks:
         fs_t = max(font_sizes)
 
         # optimization
-        self.opt_legibility = float('-inf')
+        self.opt_legibility = float("-inf")
         # format
         for f in range(2):
             # legibility score for format
@@ -381,19 +400,18 @@ class Ticks:
 
                 # distance between ticks, in units of font size
                 step = (
-                    (values[1] - values[0])         # numerical
-                    / (self.amax - self.amin)       # relative to axis
-                    * axis_length                   # physical, in cm
-                    /
-                    (fs / 72.27 * 2.54)             # font size, in cm
-                    )
+                    (values[1] - values[0])  # numerical
+                    / (self.amax - self.amin)  # relative to axis
+                    * axis_length  # physical, in cm
+                    / (fs / 72.27 * 2.54)  # font size, in cm
+                )
 
                 # orientation
                 for o in range(2):
                     # legibility score for orientation
-                    if o == 0:              # horizontal orientation
+                    if o == 0:  # horizontal orientation
                         leg_or = 1
-                    else:                   # vertical orientation
+                    else:  # vertical orientation
                         leg_or = -0.5
 
                     # legibility score for overlap
@@ -407,15 +425,17 @@ class Ticks:
                     # minimum distance between neighboring labels
                     # We can apply the minimum here, since overlap legibility
                     # is an increasing function of distance.
-                    dist = min(step - (extents[i] + extents[i + 1]) / 2
-                               for i in range(len(extents) - 1))
+                    dist = min(
+                        step - (extents[i] + extents[i + 1]) / 2
+                        for i in range(len(extents) - 1)
+                    )
                     # score; we interpret em as font size
                     if dist >= 1.5:
                         leg_ov = 1
                     elif dist > 0:
                         leg_ov = 2 - 1.5 / dist
                     else:
-                        leg_ov = float('-inf')
+                        leg_ov = float("-inf")
 
                     # total legibility score
                     leg = (leg_f + leg_fs + leg_or + leg_ov) / 4
@@ -426,18 +446,18 @@ class Ticks:
                         self.labels = labels
                         self.plabel = plabel
                         self.font_size = fs
-                        self.horizontal = (o == 0)
+                        self.horizontal = o == 0
 
     def _label_width(self, label, font_metrics):
         "get width of tick label"
 
-        w = sum(map(font_metrics.get, label)) + font_metrics['offset']
+        w = sum(map(font_metrics.get, label)) + font_metrics["offset"]
         return w
 
     def _label_height(self, label, font_metrics):
         "get height of tick label"
 
-        h = font_metrics['height']
+        h = font_metrics["height"]
         return h
 
     def _labels_Decimal(self):
@@ -446,7 +466,7 @@ class Ticks:
         # get values
         dvs = self.decimal_values
         # create labels
-        labels = ['{:f}'.format(dv) for dv in dvs]
+        labels = ["{:f}".format(dv) for dv in dvs]
         return labels
 
     def _labels_Scientific(self):
@@ -457,8 +477,8 @@ class Ticks:
         # get largest power of 10 than can be factored out
         z0 = min([floor(log10(abs(dv))) for dv in dvs if dv != 0])
         # get values adjusted to that power
-        dvs = [dv * D('1E1') ** (-z0) for dv in dvs]
+        dvs = [dv * D("1E1") ** (-z0) for dv in dvs]
         # create labels
-        labels = ['{:f}'.format(dv) for dv in dvs]
-        plabel = '{:d}'.format(z0)
+        labels = ["{:f}".format(dv) for dv in dvs]
+        plabel = "{:d}".format(z0)
         return labels, plabel

@@ -92,12 +92,16 @@ class Box:
 
     def _draw(self, env, label=None, opt=None, **kwoptions):
         "draw Box into environment"
-        env.draw((self.x, self.y),
-                 rectangle((self.x + self.w, self.y + self.h)),
-                 opt=opt, **kwoptions)
+        env.draw(
+            (self.x, self.y),
+            rectangle((self.x + self.w, self.y + self.h)),
+            opt=opt,
+            **kwoptions,
+        )
         if label is not None:
-            env.node(label, at=(self.x, self.y + self.h),
-                     anchor='north west', font=r'\tiny')
+            env.node(
+                label, at=(self.x, self.y + self.h), anchor="north west", font=r"\tiny"
+            )
 
 
 class View:
@@ -125,6 +129,7 @@ class Layout:
     - if computations are necessary to ensure these members are up-to-date,
       they are implemented in a method overriding `_compute`.
     """
+
     def _compute(self):
         pass
 
@@ -139,10 +144,9 @@ class Layout:
     def _draw(self, env):
         "draw Layout into environment"
         env.draw((0, 0), rectangle((self.width, self.height)))
-        env.node('Layout', at=(0, self.height),
-                 anchor='north west', font=r'\tiny')
+        env.node("Layout", at=(0, self.height), anchor="north west", font=r"\tiny")
         for i in range(len(self.views)):
-            self.views[i]._draw(env, f'View {i}')
+            self.views[i]._draw(env, f"View {i}")
 
     def _repr_png_(self, dpi=None):
         "represent Layout as PNG for notebook"
@@ -154,21 +158,24 @@ class Layout:
 
 class SimpleLayout(Layout):
     "layout with a single view"
+
     def __init__(self, **parameters):
         # process Layout parameters and get defaults
-        self.width = parameters.get('width', cfg.width)
-        mh = parameters.get('margin_horizontal', parameters.get(
-            'margin', cfg.margin_horizontal))
-        mv = parameters.get('margin_vertical', parameters.get(
-            'margin', cfg.margin_vertical))
-        pl = parameters.get('padding_left', cfg.padding_left)
-        pr = parameters.get('padding_right', cfg.padding_right)
-        pb = parameters.get('padding_bottom', cfg.padding_bottom)
-        pt = parameters.get('padding_top', cfg.padding_top)
-        ar = parameters.get('aspect_ratio', 4/3)
+        self.width = parameters.get("width", cfg.width)
+        mh = parameters.get(
+            "margin_horizontal", parameters.get("margin", cfg.margin_horizontal)
+        )
+        mv = parameters.get(
+            "margin_vertical", parameters.get("margin", cfg.margin_vertical)
+        )
+        pl = parameters.get("padding_left", cfg.padding_left)
+        pr = parameters.get("padding_right", cfg.padding_right)
+        pb = parameters.get("padding_bottom", cfg.padding_bottom)
+        pt = parameters.get("padding_top", cfg.padding_top)
+        ar = parameters.get("aspect_ratio", 4 / 3)
         # check width
         if self.width <= 2 * mh + pl + pr:
-            raise LayoutError(f'width {self.width} is too small')
+            raise LayoutError(f"width {self.width} is too small")
         # compute
         iw = self.width - 2 * mh - pl - pr
         ih = iw / ar
@@ -187,28 +194,33 @@ class SimpleLayout(Layout):
 
 class FlexibleGridLayout(Layout):
     "layout where views encompass one or more of the cells of a flexible grid"
+
     def __init__(self, **parameters):
         # process Layout parameters and get defaults
-        self.width = parameters.get('width', cfg.width)
-        self.mh = parameters.get('margin_horizontal', parameters.get(
-            'margin', cfg.margin_horizontal))
-        self.mv = parameters.get('margin_vertical', parameters.get(
-            'margin', cfg.margin_vertical))
-        self.gh = parameters.get('gap_horizontal', parameters.get(
-            'gap', cfg.gap_horizontal))
-        self.gv = parameters.get('gap_vertical', parameters.get(
-            'gap', cfg.gap_vertical))
-        self.pl = parameters.get('padding_left', cfg.padding_left)
-        self.pr = parameters.get('padding_right', cfg.padding_right)
-        self.pb = parameters.get('padding_bottom', cfg.padding_bottom)
-        self.pt = parameters.get('padding_top', cfg.padding_top)
+        self.width = parameters.get("width", cfg.width)
+        self.mh = parameters.get(
+            "margin_horizontal", parameters.get("margin", cfg.margin_horizontal)
+        )
+        self.mv = parameters.get(
+            "margin_vertical", parameters.get("margin", cfg.margin_vertical)
+        )
+        self.gh = parameters.get(
+            "gap_horizontal", parameters.get("gap", cfg.gap_horizontal)
+        )
+        self.gv = parameters.get(
+            "gap_vertical", parameters.get("gap", cfg.gap_vertical)
+        )
+        self.pl = parameters.get("padding_left", cfg.padding_left)
+        self.pr = parameters.get("padding_right", cfg.padding_right)
+        self.pb = parameters.get("padding_bottom", cfg.padding_bottom)
+        self.pt = parameters.get("padding_top", cfg.padding_top)
         # initialize list of Views and view parameters
         self.views = []
-        self.rf = []    # rows from
-        self.rt = []    # rows to
-        self.cf = []    # columns from
-        self.ct = []    # columns to
-        self.ar = []    # aspect ratio
+        self.rf = []  # rows from
+        self.rt = []  # rows to
+        self.cf = []  # columns from
+        self.ct = []  # columns to
+        self.ar = []  # aspect ratio
 
     def add_view(self, rows, cols, aspect_ratio=None):
         # support specification of single row/col as scalar
@@ -226,9 +238,8 @@ class FlexibleGridLayout(Layout):
         v = View()
         self.views.append(v)
         # check width
-        if self.width <= (2 * self.mh + self.pl + self.pr
-                          + self.gh * max(self.ct)):
-            raise LayoutError(f'width {self.width} too small')
+        if self.width <= (2 * self.mh + self.pl + self.pr + self.gh * max(self.ct)):
+            raise LayoutError(f"width {self.width} too small")
 
     def _compute(self):
         # What we have to compute are the outer and inner box of each view. To
@@ -264,21 +275,22 @@ class FlexibleGridLayout(Layout):
                 continue
             # row heights included in view
             h = np.zeros(nr)
-            h[rf: rt + 1] = 1
+            h[rf : rt + 1] = 1
             nvr = sum(h)
             # column widths included in view
             w = np.zeros(nc)
-            w[cf: ct + 1] = 1
+            w[cf : ct + 1] = 1
             nvc = sum(w)
             # constraint
             A[i + 1, :] = np.hstack((-ar * h, w))
-            b[i + 1] = ((self.pl + self.pr - (nvc - 1) * self.gh)
-                        - ar * (self.pt + self.pb - (nvr - 1) * self.gv))
+            b[i + 1] = (self.pl + self.pr - (nvc - 1) * self.gh) - ar * (
+                self.pt + self.pb - (nvr - 1) * self.gv
+            )
 
         # check constraints
         rank = np.linalg.matrix_rank(A)
         if rank < nr + nc:
-            print('Warning: The Layout is underdetermined.')
+            print("Warning: The Layout is underdetermined.")
 
         # solve expression
         u = np.linalg.pinv(A) @ b
@@ -296,7 +308,7 @@ class FlexibleGridLayout(Layout):
         tol = 2.54 / 72.27 / 65536
         actual_width = sum(cw) + 2 * self.mh + (nc - 1) * self.gh
         if abs(actual_width - self.width) > tol:
-            print(f'Warning: Layout width is {actual_width}.')
+            print(f"Warning: Layout width is {actual_width}.")
 
         # compute position of view boxes
         for i in range(len(self.views)):
@@ -309,8 +321,8 @@ class FlexibleGridLayout(Layout):
             # outer box
             ox = self.mh + sum(cw[:cf]) + cf * self.gh
             oy = self.mv + sum(rh[:rf]) + rf * self.gv
-            ow = sum(cw[cf: ct + 1]) + (ct - cf) * self.gh
-            oh = sum(rh[rf: rt + 1]) + (rt - rf) * self.gv
+            ow = sum(cw[cf : ct + 1]) + (ct - cf) * self.gh
+            oh = sum(rh[rf : rt + 1]) + (rt - rf) * self.gv
             oy = self.height - oy - oh
             outer = Box(ox, oy, ow, oh)
             # inner box
@@ -326,28 +338,32 @@ class FlexibleGridLayout(Layout):
             if ar is None:
                 continue
             if abs(iw - ar * ih) > tol:
-                print(f'Warning: View {i} aspect ratio is {iw / ih}.')
+                print(f"Warning: View {i} aspect ratio is {iw / ih}.")
 
 
 class LayoutError(Exception):
     """
     error in computing Layout
     """
+
     pass
 
 
 class Figure(Picture):
-    def __init__(self, layout=None, tempdir=None, cache=True, font=None,
-                 opt=None, **layout_parameters):
+    def __init__(
+        self,
+        layout=None,
+        tempdir=None,
+        cache=True,
+        font=None,
+        opt=None,
+        **layout_parameters,
+    ):
         if font is None:
             font = fontsize(cfg.figure_fontsize)
         else:
             font = fontsize(cfg.figure_fontsize) + font
-        super().__init__(
-            tempdir=tempdir,
-            cache=cache,
-            opt=opt,
-            font=font)
+        super().__init__(tempdir=tempdir, cache=cache, opt=opt, font=font)
         # process layout
         if layout is None:
             layout = SimpleLayout(**layout_parameters)
@@ -359,20 +375,31 @@ class Figure(Picture):
         # use font Fira
         self.fira()
         font_metrics = {
-            'offset': 0.1, '-': 0.4, '1': 0.56, '2': 0.56, '3': 0.56,
-            '4': 0.56, '5': 0.56, '6': 0.56, '7': 0.56, '8': 0.56, '9': 0.56,
-            '0': 0.56, '.': 0.24, 'height': 0.723}
+            "offset": 0.1,
+            "-": 0.4,
+            "1": 0.56,
+            "2": 0.56,
+            "3": 0.56,
+            "4": 0.56,
+            "5": 0.56,
+            "6": 0.56,
+            "7": 0.56,
+            "8": 0.56,
+            "9": 0.56,
+            "0": 0.56,
+            ".": 0.24,
+            "height": 0.723,
+        }
         # TODO: general mechanism to register fonts?
         #   or at least keep font activation code and font_metrics together?
         # create `TicksGenerator`
         self.ticks_generator = TicksGenerator(
-            cfg.ticks_fontsizes,
-            cfg.tick_density,
-            font_metrics=font_metrics)
+            cfg.ticks_fontsizes, cfg.tick_density, font_metrics=font_metrics
+        )
 
     def draw_layout(self):
         "draw layout"
-        scope = self.scope(color='red')
+        scope = self.scope(color="red")
         self.layout._draw(scope)
 
     def title(self, label, margin_vertical=None):
@@ -384,21 +411,36 @@ class Figure(Picture):
             margin_vertical = cfg.margin_vertical
         scope = self.scope()
         # position title such that descenders touch Layout
-        scope.node(label, at=(self.width / 2, self.height),
-                   anchor='base', yshift='depth("gjpqy")', name='title',
-                   outer_sep=0, inner_sep=0)
+        scope.node(
+            label,
+            at=(self.width / 2, self.height),
+            anchor="base",
+            yshift='depth("gjpqy")',
+            name="title",
+            outer_sep=0,
+            inner_sep=0,
+        )
         # extend bounding box such that there is space above capital letters
         # and ascenders
-        scope.path('(title.base)', options(yshift='height("HAbdfhk")'),
-                   f'+(0,{margin_vertical})')
+        scope.path(
+            "(title.base)",
+            options(yshift='height("HAbdfhk")'),
+            f"+(0,{margin_vertical})",
+        )
         # Alternatively, one could set the height and depth of the node,
         # see https://pgf-tikz.github.io/pgf/pgfmanual.pdf#subsubsection.17.4.4
         # Also, predefine this height and depth for ease of use? – No, because
         # it depends on the font size. But maybe define macros.
 
     def axes(self, xlim, ylim, view_no=0, xaxis=True, yaxis=True):
-        a = Axes(self.views[view_no], xlim, ylim, self.ticks_generator,
-                 xaxis=xaxis, yaxis=yaxis)
+        a = Axes(
+            self.views[view_no],
+            xlim,
+            ylim,
+            self.ticks_generator,
+            xaxis=xaxis,
+            yaxis=yaxis,
+        )
         self._append(a)
         return a
 
@@ -427,16 +469,15 @@ class Axes(Scope):
 
         # Drawing is clipped to the inner box, with a bit of padding.
         pad = cfg.clip_margin
-        self.clip(f'({x - pad}cm,{y - pad}cm)',
-                  rectangle(f'({x + w + pad}cm, {y + h + pad}cm)'))
+        self.clip(
+            f"({x - pad}cm,{y - pad}cm)",
+            rectangle(f"({x + w + pad}cm, {y + h + pad}cm)"),
+        )
 
         # The Axes scope itself sets an origin in the left bottom corner of
         # the inner box, and xy set up such that [0, 1] covers the whole inner
         # width / height.
-        self.tikzset(xshift=f'{x}cm',
-                     yshift=f'{y}cm',
-                     x=f'{w}cm',
-                     y=f'{h}cm')
+        self.tikzset(xshift=f"{x}cm", yshift=f"{y}cm", x=f"{w}cm", y=f"{h}cm")
 
         # coordinate limits from tex_maxdimen
         cxmin = (-tex_maxdimen - x) / w * xrange + xmin
@@ -451,24 +492,25 @@ class Axes(Scope):
             if not isinstance(cx, str):
                 # check too large
                 if cx < cxmin:
-                    print(f'Warning: x coordinate {cx} clipped to {cxmin}.')
+                    print(f"Warning: x coordinate {cx} clipped to {cxmin}.")
                     cx = cxmin
                 if cx > cxmax:
-                    print(f'Warning: x coordinate {cx} clipped to {cxmax}.')
+                    print(f"Warning: x coordinate {cx} clipped to {cxmax}.")
                     cx = cxmax
                 # transform x
                 cx = (cx - xmin) / xrange
             if not isinstance(cy, str):
                 # check too large
                 if cy < cymin:
-                    print(f'Warning: y coordinate {cy} clipped to {cymin}.')
+                    print(f"Warning: y coordinate {cy} clipped to {cymin}.")
                     cy = cymin
                 if cy > cymax:
-                    print(f'Warning: x coordinate {cy} clipped to {cymax}.')
+                    print(f"Warning: x coordinate {cy} clipped to {cymax}.")
                     cy = cymax
                 # transform y
                 cy = (cy - ymin) / yrange
             return cx, cy
+
         self.trans = transformation
 
         # TODO: postpone to allow modification?
@@ -489,20 +531,16 @@ class Axes(Scope):
         else:
             font = None
         rotate = None if t.horizontal else 90
-        d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)),
-               line_cap='round')
+        d.draw((i.x, i.y - o), lineto((i.x + i.w, i.y - o)), line_cap="round")
         for v, l in zip(t.values, t.labels):
             x = i.x + (v - t.amin) / (t.amax - t.amin) * i.w
             if t.horizontal:
-                n = node(f'${l}$', font=font, rotate=rotate,
-                         anchor='north')
+                n = node(f"${l}$", font=font, rotate=rotate, anchor="north")
             else:
-                n = node(f'${l}$', font=font, rotate=rotate,
-                         anchor='east')
+                n = node(f"${l}$", font=font, rotate=rotate, anchor="east")
             d.draw((x, i.y - o), lineto((x, i.y - o - tl)), n)
         if t.plabel is not None:
-            d.draw((i.x + i.w, i.y), node(f'$10^{{{t.plabel}}}$'),
-                   anchor='west')
+            d.draw((i.x + i.w, i.y), node(f"$10^{{{t.plabel}}}$"), anchor="west")
         # TODO: standardize / `cfg`urize label and plabel padding
 
     def yaxis(self):
@@ -516,20 +554,16 @@ class Axes(Scope):
         else:
             font = None
         rotate = None if t.horizontal else 90
-        d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)),
-               line_cap='round')
+        d.draw((i.x - o, i.y), lineto((i.x - o, i.y + i.h)), line_cap="round")
         for v, l in zip(t.values, t.labels):
             y = i.y + (v - t.amin) / (t.amax - t.amin) * i.h
             if t.horizontal:
-                n = node(f'${l}$', font=font, rotate=rotate,
-                         anchor='east')
+                n = node(f"${l}$", font=font, rotate=rotate, anchor="east")
             else:
-                n = node(f'${l}$', font=font, rotate=rotate,
-                         anchor='south')
+                n = node(f"${l}$", font=font, rotate=rotate, anchor="south")
             d.draw((i.x - o, y), lineto((i.x - o - tl, y)), n)
         if t.plabel is not None:
-            d.draw((i.x, i.y + i.h), node(f'$10^{{{t.plabel}}}$'),
-                   anchor='south')
+            d.draw((i.x, i.y + i.h), node(f"$10^{{{t.plabel}}}$"), anchor="south")
 
     # TODO: yaxis_right, maybe xaxis_top
     # Axes options yaxis= 'left', 'right', None
@@ -537,6 +571,5 @@ class Axes(Scope):
 
     def _code(self):
         "returns TikZ code"
-        code = (self.decorations._code() + '\n'
-                + super()._code(self.trans))
+        code = self.decorations._code() + "\n" + super()._code(self.trans)
         return code
